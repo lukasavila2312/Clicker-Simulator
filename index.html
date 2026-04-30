@@ -107,9 +107,9 @@
     if (cliques >= custoauto){
     cliques -= custoauto;
     auto += 1;
+    custoauto *= 2;
     atualizarTela3();
     atualizarTela();
-    custoauto *= 2;
     }
     else {
     alert("você não tem pontos o suficientes")
@@ -133,5 +133,8 @@
     cliques += auto;
     atualizarTela();
   }, 500);
+  atualizarTela();
+  atualizarTela2();
+  atualizarTela3();
   </script>
 </html>
