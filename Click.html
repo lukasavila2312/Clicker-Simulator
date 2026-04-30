@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>clicker simulator</title>
+    <style>
+      body {
+        text-align: center;
+      }
+      button {
+        max-width: 1200px;
+        width: 40%;
+        height: 80px;
+        font-size: 20px;
+        background-color: lightgreen;
+      } 
+      p {
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="geral"><h1>clicker simulator</h1>
+    <br>
+    <button onclick= "loja()">loja</button>
+    <br>
+    <br>
+   <button onclick="clique()">clique aqui!</button>
+    <p id="click"></p>
+    <p id="ganho"></p>
+    </div>
+    <div id="loja" style="display: none;">
+      <h1>Loja</h1>
+      <p>comprar itens aqui</p>
+      <button onclick="comprarUpgrade()">duplicar ganho - custo <span id= "custo"></span> cliques</button>
+      <br>
+      <br>
+      <button onclick="cliqui()">autoclicker - custo <span id= "custoa"></span></button>
+      <br>
+      <br>
+      <button onclick="fl()">voltar</button>
+    </div>
+  </body>
+  <script>
+    let cliques = 0;
+    let ganho = 1;
+    let custoUp = 50;
+    let auto = 0;
+    let custoauto = 100;
+    let custo = document.getElementById('custo').innerText = custoUp;
+    let clicker = document.getElementById("custoa").innerText = custoauto;
+    
+    if (localStorage.getItem("save")) {
+      let save = JSON.parse(localStorage.getItem("save"));
+      
+      cliques = save.cliques;
+      ganho = save.ganho;
+      custoUp = save.custoUp;
+      auto = save.auto;
+      custoauto = save.custoauto;
+      
+      atualizarTela();
+      atualizarTela2();
+      atualizarTela3();
+    }
+    
+    const displaycusto = document.getElementById('custo');
+    function loja(){
+      document.getElementById("geral").style.display = "none";
+      document.getElementById("loja").style.display = "block";
+    }
+    function fl(){
+      document.getElementById("geral").style.display = "block";
+      document.getElementById("loja").style.display = "none";
+    }
+  function clique(){
+    cliques += ganho;
+    atualizarTela();
+  }
+  function comprarUpgrade() {
+    if (cliques >= custoUp) {
+      cliques -=custoUp;
+      ganho *= 2;
+      custoUp *= 2;
+      
+      atualizarTela2();
+      atualizarTela();
+    }
+    else {
+      alert("você não tem pontos suficientes")
+    }
+  }
+  function atualizarTela() {
+    document.getElementById("click").innerText = cliques + " cliques";
+    document.getElementById("ganho").innerText = "ganho por clique: " + ganho;
+    salvar();
+  }
+  function atualizarTela2() {
+    document.getElementById("custo").innerText = custoUp;
+    salvar();
+  }
+  function cliqui(){
+    if (cliques >= custoauto){
+    cliques -= custoauto;
+    auto += 1;
+    atualizarTela3();
+    atualizarTela();
+    custoauto *= 2;
+    }
+    else {
+    alert("você não tem pontos o suficientes")
+    }
+  }
+  function atualizarTela3() {
+    document.getElementById("custoa").innerText = custoauto;
+    salvar();
+  }
+  function salvar(){
+    localStorage.setItem("save" , JSON.stringify({
+      cliques: cliques,
+      auto: auto,
+      ganho: ganho,
+      custoauto: custoauto,
+      custoUp: custoUp
+    }));
+  }
+  
+  setInterval(() => {
+    cliques += auto;
+    atualizarTela();
+  }, 500);
+  </script>
+</html>
