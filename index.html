@@ -8,6 +8,10 @@
       body {
         text-align: center;
         min-height: 100vh;
+        background-image: url('https://images.unsplash.com/32/Mc8kW4x9Q3aRR3RkP5Im_IMG_4417.jpg?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
       }
       button {
         max-width: 1200px;
@@ -17,6 +21,7 @@
         background-color: lightgreen;
         touch-action: manipulation;
         user-select: none;
+        border-radius: 12px;
       } 
       .menus {
         display: flex;
@@ -86,6 +91,9 @@
     <div id="loja" style="display: none;">
       <h1>Loja</h1>
       <p>comprar itens aqui</p>
+      <br>
+      <p id="clickLoja"></p>
+      <br>
       <button onclick="comprarUpgrade()">X2 ganho - custo <span id= "custo"></span> cliques</button>
       <br>
       <br>
@@ -97,14 +105,9 @@
     <div id="lopet" style="display: none;">
       <h1>Loja de pets</h1>
       <p>comprar pets aqui</p>
-      <button onclick="comprarOvo('basico')">ovo basico - custo: <span id = "custop"></span></button>
+      <p id= "clickPet"></p>
+      <div id="listaOvos"></div>
       <p id="petObtido"></p>
-      <br>
-      <br>
-      <button onclick= "comprarOvo('pro')">ovo pro - custo: <span id = "custop2"></span></button>
-      <p id="petObtido2"></p>
-      <br>
-      <br>
       <button onclick = "flp()">voltar</button>
     </div>
     <div id= "invento" style="display: none;">
@@ -128,8 +131,9 @@
     let clicker = document.getElementById("custoa").innerText = custoauto;
     let ovos = {
       basico: {
+        nome: "Ovo basico",
         custo: 100,
-        resultadoId: "petObtido",
+        resultadoId: "resultado_basico",
         pets: [
           {nome: "cachorro", bonus: 2, raridade: "comum"},
           {nome: "gato", bonus: 3, raridade: "rara"},
@@ -138,21 +142,29 @@
           chances: [0.6, 0.3,0.1 ]
         },
       pro: {
+        nome: "ovo pro",
         custo: 5000,
-        resultadoId: "petObtido2",
+        resultadoId: "resultado_pro",
         pets: [
           {nome: "lobo", bonus: 9, raridade: "comum"},
           {nome: "tigre", bonus: 12, raridade: "rara"},
           {nome: "fenix", bonus: 20, raridade: "lendaria"}
           ],
           chances: [0.6, 0.3, 0.1 ]
-      }
+      },
+      préhistorico: {
+        nome: "Ovo pré-historico",
+        custo: 1000000,
+        resultadoId: "resultado_préhistorico",
+        pets: [
+          {nome: "velociraptor", bonus: 35, raridade: "comum"},
+          {nome: "triceratops", bonus: 50, raridade: "rara"},
+          {nome: "T-rex", bonus: 100, raridade: "lendaria"}
+          ],
+          chances: [0.6,0.3,0.1]
+      },
     };
     let inventario = [];
-    let custopet2 = 5000;
-    document.getElementById("custop2").innerText = formatarNumero(custopet2);
-    let custopet = 100;
-    document.getElementById("custop").innerText = formatarNumero(custopet);
     let equipados = [];
     
     if (localStorage.getItem("save")) {
@@ -166,8 +178,6 @@
       inventario = save.inventario || [];
       ganhoBase = save.ganhoBase || 1;
       equipados = save.equipados || [];
-      custopet = save.custopet || 100;
-      custopet2 = save.custopet2 || 5000;
       recalcularganho();
       
       atualizarTela();
@@ -177,6 +187,7 @@
     function loja(){
       document.getElementById("geral").style.display = "none";
       document.getElementById("loja").style.display = "block";
+      atualizarTela();
     }
     function fl(){
       document.getElementById("geral").style.display = "block";
@@ -185,6 +196,8 @@
     function lojapet(){
       document.getElementById("geral").style.display = "none";
       document.getElementById("lopet").style.display = "block";
+      atualizarTela();
+      gerarOvos();
     }
     function flp(){
       document.getElementById("geral").style.display = "block";
@@ -258,6 +271,24 @@
       recalcularganho();
       mostrarinventario();
     }
+    function gerarOvos(){
+  let area = document.getElementById("listaOvos");
+  area.innerHTML = "";
+
+  for(let tipo in ovos){
+    let ovo = ovos[tipo];
+
+    area.innerHTML += `
+      <div style="margin-bottom:25px;">
+        <button onclick="comprarOvo('${tipo}')">
+          ${ovo.nome} - custo ${formatarNumero(ovo.custo)}
+        </button>
+
+        <p id="resultado_${tipo}"></p>
+      </div>
+    `;
+  }
+}
     function recalcularganho(){
       ganho = ganhoBase;
       let multiplicador = 1;
@@ -345,6 +376,15 @@ el.timer = setTimeout(() => {
   function atualizarTela() {
     document.getElementById("click").innerText = formatarNumero(cliques) + " cliques";
     document.getElementById("ganho").innerText = "ganho por clique: " + formatarNumero(ganho);
+   let Lojaclick = document.getElementById("clickLoja");
+   if (Lojaclick){
+     Lojaclick.innerText = formatarNumero(cliques) + " cliques";
+   }
+   let PetClick = document.getElementById("clickPet");
+   if (PetClick){
+     PetClick.innerText = formatarNumero(cliques) + " cliques";
+   }
+   
     salvar();
   }
   function atualizarTela2() {
@@ -386,8 +426,6 @@ el.timer = setTimeout(() => {
       inventario: inventario,
       equipados: equipados,
       ganhoBase: ganhoBase,
-      custopet: custopet,
-      custopet2: custopet2
     }));
   }
   
