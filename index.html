@@ -26,14 +26,22 @@
       .menus {
         display: flex;
         justify-content: center;
+        align-items: center;
         gap: 10px;
         flex-wrap: wrap;
-        margin-bottom: 20px;
+        margin: 18px 0;
       }
       .menus button {
-        width: 25%;
-        max-width: 1200px;
+        width: 180px;
         height: 60px;
+        border-radius: 15px;
+        flex:0 0 auto;
+      }
+      .botaoMenu {
+        width: 120px !important;
+        height: 60px;
+        border-radius:15px;
+        margin-bottom: 10px;
       }
       .botãoBonito {
         background-color: gold;
@@ -67,6 +75,33 @@
         border-radius: 15px;
         font-size: 15px;
       }
+      #listaOvos{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  max-width: 1200px;
+  margin: auto;
+  align-items: start;
+}
+
+.cardOvo{
+  background: rgba(255,255,255,0.18);
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.cardOvo button{
+  width: 100%;
+  height: 70px;
+}
+.resultadoOvo{
+  margin-top: 10px;
+  min-height: 55px;
+  font-size: 16px !important;
+  line-height: 1.3;
+  word-break: break-word;
+}
       p {
         font-size: 30px;
       }
@@ -74,19 +109,28 @@
   </head>
   <body>
     <div id="geral"><h1>clicker simulator</h1>
-    <div class="menus">
-    <button onclick= "loja()">loja</button>
-    <button onclick= "lojapet()">loja de pets</button>
-    <button onclick= "inventa()">inventario</button>
-</div>
+<div class="menus">
+      <button class="botaoMenu" onclick= "abrirMenu()">menu</button>
+    </div>
    <button class= "botãoBonito" onclick="clique()">clique aqui!</button>
     <p id="click"></p>
     <p id="ganho"></p>
+    <p id= "txtRebirth"></p>
+    </div>
+    <div id="menu" class="menus" style= "display: none;">
+    <button onclick= "loja()">loja</button>
+    <button onclick= "lojapet()">loja de pets</button>
+    <button onclick= "inventa()">inventario</button>
+    <button onclick= "lojaRebirth()">Loja de rebirth</button>
+    <button onclick= "abrirReset()"> reset</button>
+    <br><br><br><br><br><br><br>
+    <br><br>
     <br>
     <br>
     <br>
-    <br>
-    <button onclick= "reset()"> resetar jogo</button>
+    <button class= "menu" onclick= "fecharMenu()">voltar</button>
+    <br><br><br><br><br><br><br><br>
+    <p>atualização 1.02</p>
     </div>
     <div id="loja" style="display: none;">
       <h1>Loja</h1>
@@ -116,16 +160,39 @@
       <p id="petequip"></p>
       <div id="listapets"></div>
       <br>
+      <button onclick= "ativarVenda()" id="botãoVenda">vender pets: OFF </button>
+      <br>
+      <br>
       <button onclick="fecharinv()">voltar</button>
     </div>
-    
+    <div id="loRebirth" style="display: none;">
+      <h1>Loja de rebirth</h1>
+      <p>compre rebirths aqui</p>
+      <p><strong>ATENÇÃO!</strong> você perdera todo seu progresso em troca de mutiplicadores do rebirth para evoluir mais rapido</p>
+      <p id= "clickRebirth"></p>
+      <button onclick= "rebirth()">fazer rebirth - custo <span id="custoR"></span></button>
+      <br>
+      <br>
+      <button onclick= "fecharLojaR()">voltar</button>
+    </div>
+    <div id= "lojaReset" style="display: none;">
+      <h1>resetar jogo?</h1>
+      <button onclick= "reset()">resetar jogo</button>
+      <br>
+      <br>
+      <button onclick= "fecharLojaReset()">voltar</button>
+    </div>
   </body>
   <script>
     let cliques = 0;
     let ganho = 1;
+    let rebirths = 0;
+    let custoR = 1000000000;
     let ganhoBase = 1;
     let custoUp = 50;
     let auto = 0;
+    let modoVenda = false;
+    let limiteInventario = 50;
     let custoauto = 100;
     let custo = document.getElementById('custo').innerText = custoUp;
     let clicker = document.getElementById("custoa").innerText = custoauto;
@@ -163,6 +230,28 @@
           ],
           chances: [0.6,0.3,0.1]
       },
+      futuro: {
+        nome: "Ovo futuristico",
+        custo: 500000000,
+        resultadoId: "resultado_futuro",
+        pets: [
+          {nome: "robô", bonus: 250, raridade: "comum"},
+          {nome: "ciborgue", bonus: 500, raridade: "rara"},
+          {nome: "robô exterminador", bonus: 1000, raridade: "lendaria"}
+          ],
+          chances: [0.6,0.3,0.1]
+      },
+      celestial: {
+        nome: "Ovo celestial",
+        custo: 100000000000,
+        resultadoId: "resultado_celestial",
+        pets: [
+          {nome: "cachorro celeste", bonus: 1500, raridade: "comum"},
+          {nome: "gato superior", bonus: 2000, raridade: "rara"},
+          {nome: "dragão purificado", bonus: 5000, raridade: "lendaria"}
+          ],
+          chances: [0.6,0.3,0.1]
+      },
     };
     let inventario = [];
     let equipados = [];
@@ -178,39 +267,70 @@
       inventario = save.inventario || [];
       ganhoBase = save.ganhoBase || 1;
       equipados = save.equipados || [];
+      rebirths = save.rebirths || 0;
+      custoR = save.custoR || 1000000000;
       recalcularganho();
       
       atualizarTela();
       atualizarTela2();
       atualizarTela3();
+      atualizarTela4();
     }
     function loja(){
       document.getElementById("geral").style.display = "none";
       document.getElementById("loja").style.display = "block";
+      document.getElementById("menu").style.display = "none";
       atualizarTela();
     }
     function fl(){
-      document.getElementById("geral").style.display = "block";
+      document.getElementById("menu").style.display = "block";
       document.getElementById("loja").style.display = "none";
     }
     function lojapet(){
       document.getElementById("geral").style.display = "none";
       document.getElementById("lopet").style.display = "block";
+      document.getElementById("menu").style.display = "none";
       atualizarTela();
       gerarOvos();
     }
     function flp(){
-      document.getElementById("geral").style.display = "block";
+      document.getElementById("menu").style.display = "block";
       document.getElementById("lopet").style.display = "none";
+    }
+    function lojaRebirth() {
+      document.getElementById("geral").style.display = "none";
+      document.getElementById("loRebirth").style.display = "block";
+      document.getElementById("menu").style.display = "none";
+    }
+    function fecharLojaR() {
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("loRebirth").style.display = "none";
+    }
+    function abrirMenu() {
+     document.getElementById("geral").style.display = "none";
+     document.getElementById("menu").style.display = "block";
+    }
+    function fecharMenu(){
+    document.getElementById("geral").style.display = "block";
+    document.getElementById("menu").style.display = "none";
     }
     function inventa(){
       document.getElementById("geral").style.display = "none";
       document.getElementById("invento").style.display = "block";
+      document.getElementById("menu").style.display = "none";
       mostrarinventario();
     }
     function fecharinv(){
-      document.getElementById("geral").style.display = "block";
+      document.getElementById("menu").style.display = "block";
       document.getElementById("invento").style.display = "none";
+    }
+    function abrirReset(){
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("lojaReset").style.display = "block";
+    }
+    function fecharLojaReset(){
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("lojaReset").style.display = "none";
     }
      function mostrarinventario(){
   let lista = document.getElementById("listapets");
@@ -243,9 +363,7 @@
   }
 
   document.getElementById("petequip").innerText =
-    "equipados: " + equipados.length + "/3";
-    
-      document.getElementById("petequip").innerText = "equipados: " + equipados.length + "/3";
+    "equipados: " + equipados.length + "/3" + " | inventario: " + inventario.length + "/" + limiteInventario;
     }
     function desequiparpet(i){
       let pet= equipados[i];
@@ -255,6 +373,10 @@
       mostrarinventario();
     }
     function equiparpet(i){
+      if(modoVenda){
+        venderPet(i);
+        return;
+      }
       let pet= inventario[i];
       
       if (equipados.includes(pet)){
@@ -271,6 +393,14 @@
       recalcularganho();
       mostrarinventario();
     }
+    function venderPet(i){
+      let pet = inventario[i];
+      let valor = pet.bonus * 25;
+      cliques += valor;
+      inventario.splice(i, 1);
+      atualizarTela();
+      mostrarinventario();
+    }
     function gerarOvos(){
   let area = document.getElementById("listaOvos");
   area.innerHTML = "";
@@ -279,26 +409,31 @@
     let ovo = ovos[tipo];
 
     area.innerHTML += `
-      <div style="margin-bottom:25px;">
+      <div style="margin-bottom:25px;" 
+      class="cardOvo">
         <button onclick="comprarOvo('${tipo}')">
           ${ovo.nome} - custo ${formatarNumero(ovo.custo)}
         </button>
 
-        <p id="resultado_${tipo}"></p>
+        <p id="resultado_${tipo}" class="resultadoOvo"></p>
       </div>
     `;
   }
 }
     function recalcularganho(){
-      ganho = ganhoBase;
+      ganho = ganhoBase*(1 + rebirths * 2);
       let multiplicador = 1;
       for(let i = 0; i < equipados.length; i++){
-        multiplicador += equipados[i].bonus * 0.2;
+        multiplicador += Math.sqrt(equipados[i].bonus) * 0.7;
       }
       ganho *= multiplicador;
       atualizarTela();
     }
     function comprarOvo(tipo){
+      if(inventario.length >= limiteInventario){
+  alert("inventário cheio!");
+  return;
+}
       let ovo = ovos[tipo];
       
       if (cliques < ovo.custo){
@@ -306,6 +441,7 @@
         return;
       }
       cliques -= ovo.custo;
+      atualizarTela();
       
       let sorteio = Math.random();
       let acumulado = 0;
@@ -373,6 +509,42 @@ el.timer = setTimeout(() => {
       alert("você não tem pontos suficientes")
     }
   }
+  function rebirth() {
+    if (cliques < custoR){
+      alert("você não tem cliques suficientes");
+      return;
+    }
+    rebirths ++;
+    custoR *= 5;
+    
+    cliques = 0;
+    ganhoBase = 1;
+    ganho = 1;
+    custoUp = 50;
+    custoauto = 100;
+    auto = 0;
+    inventario = [];
+    equipados = [];
+    
+    recalcularganho();
+    atualizarTela();
+    atualizarTela2();
+    atualizarTela3();
+    atualizarTela4();
+  }
+  function ativarVenda(){
+    modoVenda = !modoVenda;
+    let botao = document.getElementById("botãoVenda");
+    if (modoVenda){
+      botao.innerText = "vender pets: ON";
+      botao.style.backgroundColor = "red";
+    }
+    else {
+      botao.innerText = "vender pets: OFF";
+      botao.style.backgroundColor = "lightgreen";
+    }
+    mostrarinventario();
+  }
   function atualizarTela() {
     document.getElementById("click").innerText = formatarNumero(cliques) + " cliques";
     document.getElementById("ganho").innerText = "ganho por clique: " + formatarNumero(ganho);
@@ -384,6 +556,12 @@ el.timer = setTimeout(() => {
    if (PetClick){
      PetClick.innerText = formatarNumero(cliques) + " cliques";
    }
+   let reb = document.getElementById("clickRebirth");
+if(reb){
+  reb.innerText = formatarNumero(cliques) + " cliques";
+}
+document.getElementById("txtRebirth").innerText =
+"rebirths: " + rebirths + " | bônus: x" + (1 + rebirths * 2);
    
     salvar();
   }
@@ -416,6 +594,10 @@ el.timer = setTimeout(() => {
     document.getElementById("custoa").innerText = formatarNumero(custoauto);
     salvar();
   }
+  function atualizarTela4(){
+    document.getElementById("custoR").innerText = formatarNumero(custoR);
+    salvar();
+  }
   function salvar(){
     localStorage.setItem("save" , JSON.stringify({
       cliques: cliques,
@@ -426,6 +608,8 @@ el.timer = setTimeout(() => {
       inventario: inventario,
       equipados: equipados,
       ganhoBase: ganhoBase,
+      rebirths: rebirths,
+      custoR: custoR,
     }));
   }
   
@@ -436,5 +620,6 @@ el.timer = setTimeout(() => {
   atualizarTela();
   atualizarTela2();
   atualizarTela3();
+  atualizarTela4();
   </script>
 </html>
